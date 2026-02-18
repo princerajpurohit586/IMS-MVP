@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>IMS - Inventory Management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="backdrop"></div>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">IMS</div>
+      <div class="brand-sub">Inventory & Stock Intelligence</div>
+    </div>
+    <nav class="nav">
+      <button class="nav-btn active" data-page="dashboard">Dashboard</button>
+      <button class="nav-btn" data-page="inventory-config">Inventory Config</button>
+      <button class="nav-btn" data-page="inventory-stats">Inventory Stats</button>
+    </nav>
+    <div class="status" id="firebaseStatus">Firebase: not configured</div>
+  </header>
+
+  <main>
+    <section class="page active" id="dashboard">
+      <div class="page-head">
+        <h1>Dashboard</h1>
+        <p>Quick actions for purchases, consumption, returns, and adjustments.</p>
+      </div>
+
+      <div class="feature-grid">
+        <button class="feature-btn" data-feature="purchase">Purchase</button>
+        <button class="feature-btn" data-feature="consumption">Consumption</button>
+        <button class="feature-btn" data-feature="returns">Return / Replacement</button>
+        <button class="feature-btn" data-feature="adjustment">Adjustment</button>
+      </div>
+
+      <div class="feature-panel active" data-feature-panel="purchase">
+        <div class="card">
+          <h2>Purchase</h2>
+          <form id="purchaseForm">
+            <div class="form-row">
+              <label>Item (Vendor shown)</label>
+              <select id="purchaseItem" required></select>
+            </div>
+            <div class="form-row">
+              <label>Quantity</label>
+              <input type="number" id="purchaseQty" min="1" value="1" required />
+            </div>
+            <div class="form-row">
+              <label>Total Amount</label>
+              <input type="number" id="purchaseTotal" min="0" step="0.01" required />
+            </div>
+            <button type="submit" class="primary">Save Purchase</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="feature-panel" data-feature-panel="consumption">
+        <div class="card">
+          <h2>Consumption</h2>
+          <p class="muted">Use plus to consume, minus to undo. All actions are logged with date/time.</p>
+          <div id="consumptionList" class="consumption-list"></div>
+        </div>
+      </div>
+
+      <div class="feature-panel" data-feature-panel="returns">
+        <div class="card">
+          <h2>Return / Replacement</h2>
+          <form id="returnForm">
+            <div class="form-row">
+              <label>Item</label>
+              <select id="returnItem" required></select>
+            </div>
+            <div class="form-row">
+              <label>Quantity</label>
+              <input type="number" id="returnQty" min="1" value="1" required />
+            </div>
+            <div class="form-row">
+              <label>Reason</label>
+              <input type="text" id="returnReason" placeholder="Damaged, incorrect size, etc." required />
+            </div>
+            <button type="submit" class="primary">Submit Return</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="feature-panel" data-feature-panel="adjustment">
+        <div class="card">
+          <h2>Adjustment</h2>
+          <form id="adjustmentForm">
+            <div class="form-row">
+              <label>Item</label>
+              <select id="adjustItem" required></select>
+            </div>
+            <div class="form-row">
+              <label>Adjustment Type</label>
+              <select id="adjustType">
+                <option value="decrease">Decrease (Wastage / Expiry)</option>
+                <option value="increase">Increase (Found Stock)</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>Quantity</label>
+              <input type="number" id="adjustQty" min="1" value="1" required />
+            </div>
+            <div class="form-row">
+              <label>Reason</label>
+              <input type="text" id="adjustReason" placeholder="Expiry, wastage, audit correction" required />
+            </div>
+            <button type="submit" class="primary">Apply Adjustment</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="inventory-config">
+      <div class="page-head">
+        <h1>Inventory Configuration</h1>
+        <p>Create categories, units, vendors, and items.</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h2>Item Category</h2>
+          <form id="categoryForm">
+            <div class="form-row">
+              <label>Category Name</label>
+              <input type="text" id="categoryName" required />
+            </div>
+            <div class="form-row">
+              <label>Description</label>
+              <textarea id="categoryDescription" rows="3"></textarea>
+            </div>
+            <button type="submit" class="primary">Create Category</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2>Item Unit</h2>
+          <form id="unitForm">
+            <div class="form-row">
+              <label>Unit Display Name</label>
+              <input type="text" id="unitDisplay" placeholder="Km" required />
+            </div>
+            <div class="form-row">
+              <label>Unit Name</label>
+              <input type="text" id="unitName" placeholder="KILOMETER" required />
+            </div>
+            <button type="submit" class="primary">Create Unit</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2>Vendor</h2>
+          <form id="vendorForm">
+            <div class="form-row">
+              <label>Vendor Name</label>
+              <input type="text" id="vendorName" required />
+            </div>
+            <div class="form-row">
+              <label>Vendor Address</label>
+              <input type="text" id="vendorAddress" required />
+            </div>
+            <div class="form-row">
+              <label>Mobile Number</label>
+              <input type="tel" id="vendorMobile" required />
+            </div>
+            <div class="form-row">
+              <label>Mail ID</label>
+              <input type="email" id="vendorEmail" required />
+            </div>
+            <div class="form-row">
+              <label>Opening Balance</label>
+              <input type="number" id="vendorOpening" min="0" step="0.01" value="0" />
+            </div>
+            <button type="submit" class="primary">Create Vendor</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2>Item</h2>
+          <form id="itemForm">
+            <div class="form-row">
+              <label>Select Category</label>
+              <select id="itemCategory" required></select>
+            </div>
+            <div class="form-row">
+              <label>Select Unit</label>
+              <select id="itemUnit" required></select>
+            </div>
+            <div class="form-row">
+              <label>Select Vendor</label>
+              <select id="itemVendor" required></select>
+            </div>
+            <div class="form-row">
+              <label>Item Name</label>
+              <input type="text" id="itemName" required />
+            </div>
+            <div class="form-row toggle-row">
+              <label>
+                <input type="checkbox" id="itemHasExpiry" />
+                Checklist for Expiry (if applicable)
+              </label>
+            </div>
+            <div class="form-row" id="expiryRow">
+              <label>Expiry Date (optional)</label>
+              <input type="date" id="itemExpiryDate" />
+            </div>
+            <div class="form-row">
+              <label>Opening Quantity</label>
+              <input type="number" id="itemOpeningQty" min="0" value="0" required />
+            </div>
+            <div class="form-row">
+              <label>Price</label>
+              <input type="number" id="itemPrice" min="0" step="0.01" required />
+            </div>
+            <div class="form-row">
+              <label>Re-order Quantity Level</label>
+              <input type="number" id="itemReorder" min="0" value="0" required />
+            </div>
+            <button type="submit" class="primary">Create Item</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="inventory-stats">
+      <div class="page-head">
+        <h1>Inventory Stats</h1>
+        <p>Stock position, spend, and alerts.</p>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3>Total Items</h3>
+          <div class="stat-value" id="statTotalItems">0</div>
+        </div>
+        <div class="stat-card">
+          <h3>Low Stock</h3>
+          <div class="stat-value" id="statLowStock">0</div>
+        </div>
+        <div class="stat-card">
+          <h3>Out of Stock</h3>
+          <div class="stat-value" id="statOutStock">0</div>
+        </div>
+        <div class="stat-card">
+          <h3>Total Spend</h3>
+          <div class="stat-value" id="statSpend">₹0.00</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h2>Low Stock Items</h2>
+          <div id="lowStockList" class="list"></div>
+        </div>
+        <div class="card">
+          <h2>Out of Stock Items</h2>
+          <div id="outStockList" class="list"></div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h2>Expiry Alerts</h2>
+          <div id="expiryList" class="list"></div>
+        </div>
+        <div class="card">
+          <h2>Recent Activity</h2>
+          <div id="activityList" class="list"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="env.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
